@@ -1,7 +1,9 @@
 import discord
 from discord.ext import commands
+import os
 
-discord_bot_token = 'MTExMDg3NDg3NzAwNDYxMTYyNQ.GFLqhO.w8oE0msGkgl-LwZeIxC_JvVgi0sB5mHT2n0jq8'
+
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 bot = commands.Bot(command_prefix= '`')
 
@@ -10,4 +12,4 @@ bot = commands.Bot(command_prefix= '`')
 async def hello(ctx):
     await ctx.send('Hello!')
 
-bot.run(discord_bot_token)
+bot.run(TOKEN)
