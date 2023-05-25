@@ -13,7 +13,7 @@ imagePath = './images'
 @bot.command()
 async def 끄앙(ctx):
     with open(f'{imagePath}/cry.jpg', 'rb') as f:
-        await ctx.send(file=f)
+        await ctx.send(file=io.BytesIO(f.read()))
     await ctx.send('끄앙!')
 
 bot.run(TOKEN)
