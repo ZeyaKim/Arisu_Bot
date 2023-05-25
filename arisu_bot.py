@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import os
+import io
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 print(f'token = {TOKEN}')
