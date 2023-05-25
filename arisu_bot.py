@@ -10,13 +10,10 @@ bot = commands.Bot(command_prefix='`', intents=intents)  # Intents 추가
 
 imagePath = './images'
 
-
-
 @bot.command()
 async def 끄앙(ctx):
-
-    with open(f'{imagePath}/cry.jpg') as f:
-        await ctx.send_file(f)
+    with open(f'{imagePath}/cry.jpg', 'rb') as f:
+        await ctx.send(file=f)
     await ctx.send('끄앙!')
 
 bot.run(TOKEN)
