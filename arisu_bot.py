@@ -5,7 +5,7 @@ import os
 TOKEN = os.getenv("DISCORD_TOKEN")
 print(f'token = {TOKEN}')
 
-intents = discord.Intents.default()  # 기본 Intents 모두 활성화
+intents = discord.Intents.all() # 기본 Intents 모두 활성화
 bot = commands.Bot(command_prefix='`', intents=intents)  # Intents 추가
 
 @bot.command()
