@@ -9,6 +9,7 @@ class DanbooruCog(commands.Cog):
         self.bot = bot
         self.is_while_searching = False
         self.url = "https://danbooru.donmai.us/posts.json"
+        self.danbooru_images_path = os.path.join("images", "danbooru_images")
 
     async def download_file(self, session, url, file_name):
         async with session.get(url) as response:
@@ -51,17 +52,19 @@ class DanbooruCog(commands.Cog):
                     ext = [url.split('.')[-1] for url in url_list]
                     file_name_list = [f"SPOILER_image{idx}.{ext}" for idx, ext in enumerate(ext)]
 
-                    download_tasks = [self.download_file(session, url, file_name) 
+                    download_tasks = [self.download_file(session, url, os.path.join(self.danbooru_images_path, file_name)) 
                                       for url, file_name in zip(url_list, file_name_list)]
                     await asyncio.gather(*download_tasks)
 
-                    files = [discord.File(file_name, filename=file_name) for file_name in file_name_list]
+                    files = [discord.File(os.path.join(self.danbooru_images_path, file_name), filename=file_name) for file_name in file_name_list]
                     await ctx.send("아리스가 짤을 모아왔습니다!", files=files)
-
-                    for file_name in file_name_list:
-                        os.remove(file_name)
         finally:
             self.is_while_searching = False
+            
+            if file_name_list:
+                for file_name in file_name_list:
+                    if os.path.exists(os.path.join(self.danbooru_images_path, file_name)):
+                        os.remove(os.path.join(self.danbooru_images_path, file_name))
 
     @commands.command()
     async def 짤검색(self, ctx, *args):
@@ -90,15 +93,23 @@ class DanbooruCog(commands.Cog):
                     ext = [url.split('.')[-1] for url in url_list]
                     file_name_list = [f"SPOILER_image{idx}.{ext}" for idx, ext in enumerate(ext)]
 
-                    download_tasks = [self.download_file(session, url, file_name) 
+                    download_tasks = [self.download_file(session, url, os.path.join(self.danbooru_images_path, file_name)) 
                                       for url, file_name in zip(url_list, file_name_list)]
                     await asyncio.gather(*download_tasks)
 
-                    files = [discord.File(file_name, filename=file_name) for file_name in file_name_list]
+                    files = [discord.File(os.path.join(self.danbooru_images_path, file_name), filename=file_name) for file_name in file_name_list]
                     await ctx.send("아리스가 짤을 모아왔습니다!", files=files)
-
-                    for file_name in file_name_list:
-                        os.remove(file_name)
         except Exception as e:
             print(e)
-            await ctx
+            await ctx.send("아리스가 짤을 찾지 못했습니다...")
+            
+        finally:
+            self.is_while_searching = False
+            
+            if file_name_list:
+                for file_name in file_name_list:
+                    if os.path.exists(os.path.join(self.danbooru_images_path, file_name)):
+                        os.remove(os.path.join(self.danbooru_images_path, file_name))
+
+async def setup(bot):
+    await bot.add_cog(DanbooruCog(bot))
