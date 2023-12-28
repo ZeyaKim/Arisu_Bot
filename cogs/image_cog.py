@@ -4,6 +4,8 @@ import os
 from PIL import Image, ImageSequence
 import threading
 import asyncio
+import aiohttp
+import io
 
 class ImageCog(commands.Cog):
     def __init__(self, bot):
@@ -74,6 +76,66 @@ class ImageCog(commands.Cog):
             except Exception as e:
                 await ctx.send(f"파일 전송 중 오류가 발생했습니다: {e}")
                 os.remove(converted_gif)
+
+    @commands.command()
+    async def 자르기(self, ctx, piece_count: int = 2):
+        if not ctx.message.attachments:
+            await ctx.send("이미지를 첨부해주세요!")
+            return
+        
+        if len(ctx.message.attachments) > 1:
+            await ctx.send("파일을 하나만 첨부해주세요!")
+            return
+
+        image_exts = ['.png', '.jpg', '.jpeg']
+        
+        if not ctx.message.attachments[0].filename.endswith(tuple(image_exts)):
+            await ctx.send("이미지 파일을 첨부해주세요!")
+            return
+        
+        image_file = ctx.message.attachments[0]
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(image_file.url) as response:
+                if response.status != 200:
+                    await ctx.send("이미지를 가져오지 못했습니다...")
+                    return
+                
+                image_data = await response.read()
+                
+        image = Image.open(io.BytesIO(image_data))
+        width, height = image.size
+        base_slice_height = height // piece_count
+        extra_pixels = width % piece_count
+
+        os.makedirs('images/slice', exist_ok=True)
+
+        sliced_images = []
+
+        start_y = 0  # y축 시작점을 0으로 설정
+        try:
+            for i in range(piece_count):
+                if i < extra_pixels:
+                    slice_height = base_slice_height + 1
+                else:
+                    slice_height = base_slice_height
+
+                end_y = start_y + slice_height  # 세로로 자르기 때문에, y축의 끝점을 조정
+                slice = image.crop((0, start_y, width, end_y))  # x축은 전체, y축은 start_y부터 end_y까지
+
+                slice_path = f'images/slice/slice_{i}.png'
+                slice.save(slice_path)
+                sliced_images.append(slice_path)
+
+                start_y = end_y
+                
+            files = [discord.File(image_path, filename=image_path) for image_path in sliced_images]
+            
+            await ctx.send(f"{piece_count} 조각으로 자른 이미지들입니다!", files=files)
+        finally:
+            for image_path in sliced_images:
+                if os.path.exists(image_path):
+                    os.remove(image_path)
 
 async def setup(bot):
     await bot.add_cog(ImageCog(bot))

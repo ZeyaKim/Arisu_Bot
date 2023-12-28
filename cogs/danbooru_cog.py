@@ -37,8 +37,9 @@ class DanbooruCog(commands.Cog):
             await ctx.send("다른 짤을 먼저 찾는 중입니다..")
             return
         self.is_while_searching = True
+        file_name_list = []
         try:
-            params = self.make_params("", 200)
+            params = self.make_params("-yaoi -futanari", 1000)
             async with aiohttp.ClientSession() as session:
                 async with session.get(self.url, params=params) as response:
                     if response.status != 200:
@@ -77,9 +78,13 @@ class DanbooruCog(commands.Cog):
             return
         
         self.is_while_searching = True
+        
+        
+        file_name_list = []
         try:    
             tags = ' '.join(args)
-            params = self.make_params(tags, 200)
+            print(tags)
+            params = self.make_params(tags, 1000)
             async with aiohttp.ClientSession() as session:
                 async with session.get(self.url, params=params) as response:
                     if response.status != 200:
@@ -98,7 +103,7 @@ class DanbooruCog(commands.Cog):
                     await asyncio.gather(*download_tasks)
 
                     files = [discord.File(os.path.join(self.danbooru_images_path, file_name), filename=file_name) for file_name in file_name_list]
-                    await ctx.send("아리스가 짤을 모아왔습니다!", files=files)
+                    await ctx.send(f"아리스가 {tags}짤을 모아왔습니다!", files=files)
         except Exception as e:
             print(e)
             await ctx.send("아리스가 짤을 찾지 못했습니다...")
